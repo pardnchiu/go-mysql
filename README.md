@@ -1,5 +1,7 @@
 # MySQL Connection Pool (Golang)
-> A Golang MySQL connection pool wrapper with read-write separation, query builder, and automatic logging, featuring comprehensive connection management.
+> A Golang MySQL connection pool wrapper with read-write separation, query builder, and automatic logging, featuring comprehensive connection management.<br>
+> version Node.js can get [here](https://github.com/pardnchiu/node-mysql-pool)<br>
+> version PHP can get [here](https://github.com/pardnchiu/php-mysql-pool)
 
 [![license](https://img.shields.io/github/license/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/blob/main/LICENSE) 
 [![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/releases) 
