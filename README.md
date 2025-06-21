@@ -7,16 +7,11 @@
 [![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/releases) 
 [![readme](https://img.shields.io/badge/readme-中文-blue)](https://github.com/pardnchiu/go-mysql-pool/blob/main/README.zh.md) 
 
-## Features
+## Three key features
 
 - **Read-Write Separation**: Support for independent read and write connection pool configurations to enhance database performance
 - **Query Builder**: Fluent SQL query building interface to prevent SQL injection
-- **Auto Reconnection**: Automatically re-establish connections when they fail
-- **Concurrency Safe**: Thread-safe connection management supporting high-concurrency access
-- **Slow Query Logging**: Automatically log queries exceeding threshold for performance tuning
-- **Dynamic Configuration**: Dynamically adjust connection pool size during runtime
 - **CRUD Operations**: Complete Create, Read, Update, Delete operation support
-- **Memory Efficient**: Connection pool-based resource management for optimal performance
 
 ## Dependencies
 
@@ -28,7 +23,7 @@
 
 ### Installation
 ```bash
-go get github.com/pardnchiu/golang-mysql-pool
+go get github.com/pardnchiu/go-mysql-pool
 ```
 
 ### Initialization
@@ -39,7 +34,7 @@ import (
   "fmt"
   "log"
   
-  mysqlPool "github.com/pardnchiu/golang-mysql-pool"
+  mysqlPool "github.com/pardnchiu/go-mysql-pool"
 )
 
 func main() {
@@ -60,9 +55,6 @@ func main() {
       Password:   "password",
       Charset:    "utf8mb4",
       Connection: 5,
-    },
-    Log: &mysqlPool.Log{
-      Path: "./logs/mysql-pool",
     },
   }
   
@@ -135,10 +127,10 @@ type DBConfig struct {
 }
 
 type Log struct {
-  Path      string // Log directory path
-  Stdout    bool   // Enable console output
-  MaxSize   int64  // Maximum file size before rotation
-  MaxBackup int    // Number of log files to retain
+  Path      string // Log directory path (default: ./logs/mysqlPool)
+  Stdout    bool   // Enable console output (default: false)
+  MaxSize   int64  // Maximum file size before rotation (default: 16*1024*1024)
+  MaxBackup int    // Number of log files to retain (default: 5)
 }
 ```
 
@@ -240,7 +232,7 @@ result, err := pool.Write.
   Update()
 ```
 
-### Direct SQL Operations
+### SQL Operations
 
 ```go
 // Direct query

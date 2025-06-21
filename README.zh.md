@@ -7,16 +7,11 @@
 [![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/releases) 
 [![readme](https://img.shields.io/badge/readme-English-blue)](https://github.com/pardnchiu/go-mysql-pool/blob/main/README.md) 
 
-## 功能特色
+## 三大主軸
 
 - **讀寫分離**：支援讀寫連線池配置，提升資料庫效能
 - **查詢建構器**：鏈式語法的 SQL 查詢建構介面，防止 SQL 注入攻擊
-- **自動重連**：連線失敗時自動重新建立連線
-- **並發安全**：執行緒安全的連線管理，支援高並發存取
-- **慢查詢日誌**：自動記錄超過閾值的查詢，便於效能調優
-- **動態配置**：運行時動態調整連線池大小
 - **CRUD 操作**：完整的新增、查詢、更新、刪除操作支援
-- **記憶體效率**：基於連線池的資源管理，實現最佳效能
 
 ## 依賴套件
 
@@ -27,7 +22,7 @@
 
 ### 安裝
 ```bash
-go get github.com/pardnchiu/golang-mysql-pool
+go get github.com/pardnchiu/go-mysql-pool
 ```
 
 ### 初始化
@@ -38,7 +33,7 @@ import (
   "fmt"
   "log"
   
-  mysqlPool "github.com/pardnchiu/golang-mysql-pool"
+  mysqlPool "github.com/pardnchiu/go-mysql-pool"
 )
 
 func main() {
@@ -59,9 +54,6 @@ func main() {
       Password:   "password",
       Charset:    "utf8mb4",
       Connection: 5,
-    },
-    Log: &mysqlPool.Log{
-      Path: "./logs/mysql-pool",
     },
   }
   
@@ -134,16 +126,16 @@ type DBConfig struct {
 }
 
 type Log struct {
-  Path      string // 日誌目錄路徑
-  Stdout    bool   // 啟用控制台輸出
-  MaxSize   int64  // 檔案輪轉前的最大大小
-  MaxBackup int    // 保留的日誌檔案數量
+  Path      string // 日誌目錄路徑 (預設: ./logs/mysqlPool)
+  Stdout    bool   // 啟用控制台輸出 (預設: false)
+  MaxSize   int64  // 檔案輪轉前的最大大小 (預設: 16*1024*1024)
+  MaxBackup int    // 保留的日誌檔案數量 (預設: 5)
 }
 ```
 
-## 支援的操作
+## 支持的操作
 
-### 查詢建構器
+### 查詢建構
 
 ```go
 // 基本查詢
@@ -239,7 +231,7 @@ result, err := pool.Write.
   Update()
 ```
 
-### 直接 SQL 操作
+### SQL 操作
 
 ```go
 // 直接查詢
