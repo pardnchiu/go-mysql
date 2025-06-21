@@ -1,10 +1,11 @@
 # MySQL 連線池 (Golang)
 > 一個適用於 Golang 支持鏈式呼叫的 MySQL 包裝器，具備讀寫分離、查詢建構器和自動日誌記錄功能，提供完整的連線管理。<br>
-> Node.js 版本可在[這裡](https://github.com/pardnchiu/node-mysql-pool)取得<br>
-> PHP 版本可在[這裡](https://github.com/pardnchiu/php-mysql-pool)取得
+>> Node.js 版本可在[這裡](https://github.com/pardnchiu/node-mysql-pool)取得<br>
+>> PHP 版本可在[這裡](https://github.com/pardnchiu/php-mysql-pool)取得
 
 [![license](https://img.shields.io/github/license/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/blob/main/LICENSE) 
 [![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/releases) 
+[![readme](https://img.shields.io/badge/readme-English-blue)](https://github.com/pardnchiu/go-mysql-pool/blob/main/README.md) 
 
 ## 功能特色
 
