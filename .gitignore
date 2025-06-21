@@ -1,6 +1,6 @@
 my.cnf
 init.sql
-logs/*
+*.log
 example/*
 .DS_Store
 docker-compose.yml

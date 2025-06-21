@@ -1,4 +1,4 @@
-package golangMysqlPool
+package mysqlPool
 
 import (
 	"fmt"
@@ -15,54 +15,51 @@ var (
 	}
 )
 
-func (db *Pool) DB(databaseName string) *QueryBuilder {
-	_, err := db.db.Exec(fmt.Sprintf("USE `%s`", databaseName))
+func (db *Pool) DB(dbName string) *builder {
+	_, err := db.db.Exec(fmt.Sprintf("USE `%s`", dbName))
 	if err != nil {
-		db.Logger.Action(true,
-			fmt.Sprintf("Failed to switch to database %s", databaseName),
-			err.Error(),
-		)
+		db.Logger.Error(err, "Failed to switch to database "+dbName)
 	}
 
-	return &QueryBuilder{
+	return &builder{
 		db:         db.db,
-		Database:   &databaseName,
-		SelectList: []string{"*"},
-		Logger:     db.Logger,
+		dbName:     &dbName,
+		selectList: []string{"*"},
+		logger:     db.Logger,
 	}
 }
 
-func (q *QueryBuilder) Table(tableName string) *QueryBuilder {
-	q.TableName = &tableName
+func (q *builder) Table(tableName string) *builder {
+	q.table = &tableName
 	return q
 }
 
-func (q *QueryBuilder) Select(fields ...string) *QueryBuilder {
+func (q *builder) Select(fields ...string) *builder {
 	if len(fields) > 0 {
-		q.SelectList = fields
+		q.selectList = fields
 	}
 	return q
 }
 
-func (q *QueryBuilder) Total() *QueryBuilder {
-	q.WithTotal = true
+func (q *builder) Total() *builder {
+	q.withTotal = true
 	return q
 }
 
-func (q *QueryBuilder) InnerJoin(table, first, operator string, second ...string) *QueryBuilder {
+func (q *builder) InnerJoin(table, first, operator string, second ...string) *builder {
 	return q.join("INNER", table, first, operator, second...)
 }
 
-func (q *QueryBuilder) LeftJoin(table, first, operator string, second ...string) *QueryBuilder {
+func (q *builder) LeftJoin(table, first, operator string, second ...string) *builder {
 	return q.join("LEFT", table, first, operator, second...)
 }
 
-func (q *QueryBuilder) RightJoin(table, first, operator string, second ...string) *QueryBuilder {
+func (q *builder) RightJoin(table, first, operator string, second ...string) *builder {
 	return q.join("RIGHT", table, first, operator, second...)
 }
 
 // * private method
-func (q *QueryBuilder) join(joinType, table, first, operator string, second ...string) *QueryBuilder {
+func (q *builder) join(joinType, table, first, operator string, second ...string) *builder {
 	var secondField string
 	if len(second) > 0 {
 		secondField = second[0]
@@ -79,11 +76,11 @@ func (q *QueryBuilder) join(joinType, table, first, operator string, second ...s
 	}
 
 	joinClause := fmt.Sprintf("%s JOIN `%s` ON %s %s %s", joinType, table, first, operator, secondField)
-	q.JoinList = append(q.JoinList, joinClause)
+	q.joinList = append(q.joinList, joinClause)
 	return q
 }
 
-func (q *QueryBuilder) Where(column string, operator interface{}, value ...interface{}) *QueryBuilder {
+func (q *builder) Where(column string, operator interface{}, value ...interface{}) *builder {
 	var targetValue interface{}
 	var targetOperator string
 
@@ -111,13 +108,13 @@ func (q *QueryBuilder) Where(column string, operator interface{}, value ...inter
 	}
 
 	whereClause := fmt.Sprintf("%s %s %s", column, targetOperator, placeholder)
-	q.WhereList = append(q.WhereList, whereClause)
-	q.BindingList = append(q.BindingList, targetValue)
+	q.whereList = append(q.whereList, whereClause)
+	q.bindingList = append(q.bindingList, targetValue)
 
 	return q
 }
 
-func (q *QueryBuilder) OrderBy(column string, direction ...string) *QueryBuilder {
+func (q *builder) OrderBy(column string, direction ...string) *builder {
 	dir := "ASC"
 	if len(direction) > 0 {
 		dir = strings.ToUpper(direction[0])
@@ -133,28 +130,28 @@ func (q *QueryBuilder) OrderBy(column string, direction ...string) *QueryBuilder
 	}
 
 	orderClause := fmt.Sprintf("%s %s", column, dir)
-	q.OrderList = append(q.OrderList, orderClause)
+	q.orderList = append(q.orderList, orderClause)
 	return q
 }
 
-func (q *QueryBuilder) Limit(num int) *QueryBuilder {
-	q.QueryLimit = &num
+func (q *builder) Limit(num int) *builder {
+	q.limit = &num
 	return q
 }
 
-func (q *QueryBuilder) Offset(num int) *QueryBuilder {
-	q.QueryOffset = &num
+func (q *builder) Offset(num int) *builder {
+	q.offset = &num
 	return q
 }
 
-func (q *QueryBuilder) Increase(target string, number ...int) *QueryBuilder {
+func (q *builder) Increase(target string, number ...int) *builder {
 	num := 1
 	if len(number) > 0 {
 		num = number[0]
 	}
 
 	setClause := fmt.Sprintf("%s = %s + %d", target, target, num)
-	q.SetList = append(q.SetList, setClause)
+	q.setList = append(q.setList, setClause)
 	return q
 }
 

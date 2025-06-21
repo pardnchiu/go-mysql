@@ -1,14 +1,13 @@
-package golangMysqlPool
+package mysqlPool
 
 import (
 	"fmt"
 	"strings"
 )
 
-func (q *QueryBuilder) Insert(data map[string]interface{}) (int64, error) {
-	if q.TableName == nil {
-		q.Logger.Action(true, "Table is required")
-		return 0, fmt.Errorf("Table is required")
+func (q *builder) Insert(data map[string]interface{}) (int64, error) {
+	if q.table == nil {
+		return 0, q.logger.Error(nil, "Table is required")
 	}
 
 	columns := make([]string, 0, len(data))
@@ -22,7 +21,7 @@ func (q *QueryBuilder) Insert(data map[string]interface{}) (int64, error) {
 	}
 
 	query := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)",
-		*q.TableName,
+		*q.table,
 		strings.Join(columns, ", "),
 		strings.Join(placeholders, ", "),
 	)
