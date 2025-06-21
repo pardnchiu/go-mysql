@@ -1,25 +1,19 @@
-package golangMysqlPool
+package mysqlPool
 
 import (
 	"database/sql"
-	"log"
+
+	goLogger "github.com/pardnchiu/go-logger"
 )
 
-type QueryBuilder struct {
-	db          *sql.DB
-	Database    *string
-	TableName   *string
-	SelectList  []string
-	JoinList    []string
-	WhereList   []string
-	BindingList []interface{}
-	OrderList   []string
-	SetList     []string
-	QueryLimit  *int
-	QueryOffset *int
-	WithTotal   bool
-	Logger      *Logger
-}
+const (
+	defaultLogPath      = "./logs/cron.log"
+	defaultLogMaxSize   = 16 * 1024 * 1024
+	defaultLogMaxBackup = 5
+)
+
+type Log = goLogger.Log
+type Logger = goLogger.Logger
 
 type Pool struct {
 	db     *sql.DB
@@ -32,7 +26,7 @@ type PoolList struct {
 	Logger *Logger
 }
 
-type Config struct {
+type DBConfig struct {
 	Host       string `json:"host,omitempty"`
 	Port       int    `json:"port,omitempty"`
 	User       string `json:"user,omitempty"`
@@ -41,14 +35,24 @@ type Config struct {
 	Connection int    `json:"connection,omitempty"`
 }
 
-type ConfigList struct {
-	Read    *Config
-	Write   *Config
-	LogPath string `json:"log_path,omitempty"`
+type Config struct {
+	Read  *DBConfig
+	Write *DBConfig
+	Log   *Log `json:"log,omitempty"`
 }
 
-type Logger struct {
-	InitLogger   *log.Logger
-	ActionLogger *log.Logger
-	Path         string
+type builder struct {
+	db          *sql.DB
+	dbName      *string
+	table       *string
+	selectList  []string
+	joinList    []string
+	whereList   []string
+	bindingList []interface{}
+	orderList   []string
+	setList     []string
+	limit       *int
+	offset      *int
+	withTotal   bool
+	logger      *Logger
 }

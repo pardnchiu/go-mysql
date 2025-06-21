@@ -1,4 +1,4 @@
-package golangMysqlPool
+package mysqlPool
 
 import (
 	"database/sql"
@@ -7,20 +7,34 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	goLogger "github.com/pardnchiu/go-logger"
 )
 
-func New(c *ConfigList) (*PoolList, error) {
-	if c == nil {
-		return nil, fmt.Errorf("Config is required")
+func New(c Config) (*PoolList, error) {
+	// 初始化日誌器設定
+	if c.Log == nil {
+		c.Log = &Log{
+			Path:    defaultLogPath,
+			Stdout:  false,
+			MaxSize: defaultLogMaxSize,
+		}
+	}
+	if c.Log.Path == "" {
+		c.Log.Path = defaultLogPath
+	}
+	if c.Log.MaxSize <= 0 {
+		c.Log.MaxSize = defaultLogMaxSize
+	}
+	if c.Log.MaxBackup <= 0 {
+		c.Log.MaxBackup = defaultLogMaxBackup
 	}
 
-	if c.LogPath == "" {
-		c.LogPath = "./logs/golangMysqlPool"
-	}
-
-	logger, err := newLogger(c.LogPath)
+	// 建立日誌器實例
+	logger, err := goLogger.New(c.Log)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to init logger: %v", err)
+		return nil, fmt.Errorf("Can not initialize logger: %v", err)
 	}
 
 	var pool = &PoolList{
@@ -66,8 +80,7 @@ func New(c *ConfigList) (*PoolList, error) {
 		),
 	)
 	if err != nil {
-		logger.Init(true, "Failed to create read pool", err.Error())
-		return nil, fmt.Errorf("Failed to create read pool: %w", err)
+		return nil, logger.Error(err, "Failed to create read pool")
 	}
 
 	read.SetMaxOpenConns(readConfig.Connection)
@@ -75,8 +88,7 @@ func New(c *ConfigList) (*PoolList, error) {
 	read.SetConnMaxLifetime(time.Hour)
 
 	if err := read.Ping(); err != nil {
-		logger.Init(true, "Failed to connect read pool", err.Error())
-		return nil, fmt.Errorf("Failed to connect read pool: %w", err)
+		return nil, logger.Error(err, "Failed to connect read pool")
 	}
 
 	pool.Read = &Pool{db: read}
@@ -98,8 +110,7 @@ func New(c *ConfigList) (*PoolList, error) {
 		),
 	)
 	if err != nil {
-		logger.Init(true, "Failed to create write pool", err.Error())
-		return nil, fmt.Errorf("Failed to create write pool: %w", err)
+		return nil, logger.Error(err, "Failed to create write pool")
 	}
 
 	writeDB.SetMaxOpenConns(writeConfig.Connection)
@@ -107,8 +118,7 @@ func New(c *ConfigList) (*PoolList, error) {
 	writeDB.SetConnMaxLifetime(time.Hour)
 
 	if err := writeDB.Ping(); err != nil {
-		logger.Init(true, "Failed to connect write pool", err.Error())
-		return nil, fmt.Errorf("Failed to connect write pool: %w", err)
+		return nil, logger.Error(err, "Failed to connect write pool")
 	}
 
 	pool.Write = &Pool{db: writeDB}
@@ -133,12 +143,10 @@ func (p *PoolList) Close() error {
 	}
 
 	if readErr != nil {
-		p.Write.Logger.Action(true, "Failed to close read pool", readErr.Error())
-		return fmt.Errorf("Failed to close read pool: %w", readErr)
+		return p.Write.Logger.Error(readErr, "Failed to close read pool")
 	}
 	if writeErr != nil {
-		p.Write.Logger.Action(true, "Failed to close write pool", writeErr.Error())
-		return fmt.Errorf("Failed to close write pool: %w", writeErr)
+		return p.Write.Logger.Error(writeErr, "Failed to close write pool")
 	}
 
 	return nil

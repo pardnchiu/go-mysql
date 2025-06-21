@@ -1,4 +1,4 @@
-package golangMysqlPool
+package mysqlPool
 
 import (
 	"database/sql"
@@ -8,8 +8,7 @@ import (
 
 func (db *Pool) Query(query string, params ...interface{}) (*sql.Rows, error) {
 	if db.db == nil {
-		db.Logger.Action(true, "Database connection is not available")
-		return nil, fmt.Errorf("database connection is not available")
+		return nil, db.Logger.Error(nil, "Database connection is not available")
 	}
 
 	startTime := time.Now()
@@ -17,10 +16,7 @@ func (db *Pool) Query(query string, params ...interface{}) (*sql.Rows, error) {
 	duration := time.Since(startTime)
 
 	if duration > 20*time.Millisecond {
-		db.Logger.Action(false,
-			fmt.Sprintf("Slow Query: %v", duration),
-			query,
-		)
+		db.Logger.Info(fmt.Sprintf("Slow Query %s", duration))
 	}
 
 	return rows, err
@@ -28,8 +24,7 @@ func (db *Pool) Query(query string, params ...interface{}) (*sql.Rows, error) {
 
 func (db *Pool) Exec(query string, params ...interface{}) (sql.Result, error) {
 	if db.db == nil {
-		db.Logger.Action(true, "Database connection is not available")
-		return nil, fmt.Errorf("database connection is not available")
+		return nil, db.Logger.Error(nil, "Database connection is not available")
 	}
 
 	startTime := time.Now()
@@ -37,19 +32,16 @@ func (db *Pool) Exec(query string, params ...interface{}) (sql.Result, error) {
 	duration := time.Since(startTime)
 
 	if duration > 20*time.Millisecond {
-		db.Logger.Action(false,
-			fmt.Sprintf("Slow Query: %v", duration),
-			query,
-		)
+		db.Logger.Info(fmt.Sprintf("Slow Query %s", duration))
 	}
 
 	return result, err
 }
 
 // * private method
-func (q *QueryBuilder) query(query string, params ...interface{}) (*sql.Rows, error) {
+func (q *builder) query(query string, params ...interface{}) (*sql.Rows, error) {
 	if q.db == nil {
-		q.Logger.Action(true, "Database connection is not available")
+		q.logger.Error(nil, "Database connection is not available")
 		return nil, fmt.Errorf("database connection is not available")
 	}
 
@@ -58,20 +50,16 @@ func (q *QueryBuilder) query(query string, params ...interface{}) (*sql.Rows, er
 	duration := time.Since(startTime)
 
 	if duration > 20*time.Millisecond {
-		q.Logger.Action(false,
-			fmt.Sprintf("Slow Query: %v", duration),
-			query,
-		)
+		q.logger.Info(fmt.Sprintf("Slow Query %s", duration))
 	}
 
 	return rows, err
 }
 
 // * private method
-func (q *QueryBuilder) exec(query string, params ...interface{}) (sql.Result, error) {
+func (q *builder) exec(query string, params ...interface{}) (sql.Result, error) {
 	if q.db == nil {
-		q.Logger.Action(true, "Database connection is not available")
-		return nil, fmt.Errorf("database connection is not available")
+		return nil, q.logger.Error(nil, "Database connection is not available")
 	}
 
 	startTime := time.Now()
@@ -79,10 +67,7 @@ func (q *QueryBuilder) exec(query string, params ...interface{}) (sql.Result, er
 	duration := time.Since(startTime)
 
 	if duration > 20*time.Millisecond {
-		q.Logger.Action(false,
-			fmt.Sprintf("Slow Query: %v", duration),
-			query,
-		)
+		q.logger.Info(fmt.Sprintf("Slow Query %s", duration))
 	}
 
 	return result, err
