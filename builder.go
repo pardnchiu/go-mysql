@@ -15,51 +15,51 @@ var (
 	}
 )
 
-func (db *Pool) DB(dbName string) *builder {
-	_, err := db.db.Exec(fmt.Sprintf("USE `%s`", dbName))
+func (p *Pool) DB(dbName string) *builder {
+	_, err := p.db.Exec(fmt.Sprintf("USE `%s`", dbName))
 	if err != nil {
-		db.Logger.Error(err, "Failed to switch to database "+dbName)
+		p.logger.Error(err, "Failed to switch to database "+dbName)
 	}
 
 	return &builder{
-		db:         db.db,
+		db:         p.db,
 		dbName:     &dbName,
 		selectList: []string{"*"},
-		logger:     db.Logger,
+		logger:     p.logger,
 	}
 }
 
-func (q *builder) Table(tableName string) *builder {
-	q.table = &tableName
-	return q
+func (b *builder) Table(tableName string) *builder {
+	b.table = &tableName
+	return b
 }
 
-func (q *builder) Select(fields ...string) *builder {
+func (b *builder) Select(fields ...string) *builder {
 	if len(fields) > 0 {
-		q.selectList = fields
+		b.selectList = fields
 	}
-	return q
+	return b
 }
 
-func (q *builder) Total() *builder {
-	q.withTotal = true
-	return q
+func (b *builder) Total() *builder {
+	b.withTotal = true
+	return b
 }
 
-func (q *builder) InnerJoin(table, first, operator string, second ...string) *builder {
-	return q.join("INNER", table, first, operator, second...)
+func (b *builder) InnerJoin(table, first, operator string, second ...string) *builder {
+	return b.join("INNER", table, first, operator, second...)
 }
 
-func (q *builder) LeftJoin(table, first, operator string, second ...string) *builder {
-	return q.join("LEFT", table, first, operator, second...)
+func (b *builder) LeftJoin(table, first, operator string, second ...string) *builder {
+	return b.join("LEFT", table, first, operator, second...)
 }
 
-func (q *builder) RightJoin(table, first, operator string, second ...string) *builder {
-	return q.join("RIGHT", table, first, operator, second...)
+func (b *builder) RightJoin(table, first, operator string, second ...string) *builder {
+	return b.join("RIGHT", table, first, operator, second...)
 }
 
 // * private method
-func (q *builder) join(joinType, table, first, operator string, second ...string) *builder {
+func (b *builder) join(joinType, table, first, operator string, second ...string) *builder {
 	var secondField string
 	if len(second) > 0 {
 		secondField = second[0]
@@ -76,11 +76,11 @@ func (q *builder) join(joinType, table, first, operator string, second ...string
 	}
 
 	joinClause := fmt.Sprintf("%s JOIN `%s` ON %s %s %s", joinType, table, first, operator, secondField)
-	q.joinList = append(q.joinList, joinClause)
-	return q
+	b.joinList = append(b.joinList, joinClause)
+	return b
 }
 
-func (q *builder) Where(column string, operator interface{}, value ...interface{}) *builder {
+func (b *builder) Where(column string, operator interface{}, value ...interface{}) *builder {
 	var targetValue interface{}
 	var targetOperator string
 
@@ -108,13 +108,13 @@ func (q *builder) Where(column string, operator interface{}, value ...interface{
 	}
 
 	whereClause := fmt.Sprintf("%s %s %s", column, targetOperator, placeholder)
-	q.whereList = append(q.whereList, whereClause)
-	q.bindingList = append(q.bindingList, targetValue)
+	b.whereList = append(b.whereList, whereClause)
+	b.bindingList = append(b.bindingList, targetValue)
 
-	return q
+	return b
 }
 
-func (q *builder) OrderBy(column string, direction ...string) *builder {
+func (b *builder) OrderBy(column string, direction ...string) *builder {
 	dir := "ASC"
 	if len(direction) > 0 {
 		dir = strings.ToUpper(direction[0])
@@ -122,7 +122,7 @@ func (q *builder) OrderBy(column string, direction ...string) *builder {
 
 	if dir != "ASC" && dir != "DESC" {
 		log.Printf("Invalid order direction: %s", dir)
-		return q
+		return b
 	}
 
 	if !strings.Contains(column, ".") {
@@ -130,29 +130,29 @@ func (q *builder) OrderBy(column string, direction ...string) *builder {
 	}
 
 	orderClause := fmt.Sprintf("%s %s", column, dir)
-	q.orderList = append(q.orderList, orderClause)
-	return q
+	b.orderList = append(b.orderList, orderClause)
+	return b
 }
 
-func (q *builder) Limit(num int) *builder {
-	q.limit = &num
-	return q
+func (b *builder) Limit(num int) *builder {
+	b.limit = &num
+	return b
 }
 
-func (q *builder) Offset(num int) *builder {
-	q.offset = &num
-	return q
+func (b *builder) Offset(num int) *builder {
+	b.offset = &num
+	return b
 }
 
-func (q *builder) Increase(target string, number ...int) *builder {
+func (b *builder) Increase(target string, number ...int) *builder {
 	num := 1
 	if len(number) > 0 {
 		num = number[0]
 	}
 
 	setClause := fmt.Sprintf("%s = %s + %d", target, target, num)
-	q.setList = append(q.setList, setClause)
-	return q
+	b.setList = append(b.setList, setClause)
+	return b
 }
 
 // * private method

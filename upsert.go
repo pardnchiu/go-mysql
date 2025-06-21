@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-func (q *builder) Upsert(data map[string]interface{}, updateData ...interface{}) (int64, error) {
-	if q.table == nil {
-		return 0, q.logger.Error(nil, "Table is required")
+func (b *builder) Upsert(data map[string]interface{}, updateData ...interface{}) (int64, error) {
+	if b.table == nil {
+		return 0, b.logger.Error(nil, "Table is required")
 	}
 
 	columns := make([]string, 0, len(data))
@@ -53,13 +53,13 @@ func (q *builder) Upsert(data map[string]interface{}, updateData ...interface{})
 	}
 
 	query := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)%s",
-		*q.table,
+		*b.table,
 		strings.Join(columns, ", "),
 		strings.Join(placeholders, ", "),
 		updateClause)
 
 	allValues := append(values, updateValues...)
-	result, err := q.exec(query, allValues...)
+	result, err := b.exec(query, allValues...)
 	if err != nil {
 		return 0, err
 	}

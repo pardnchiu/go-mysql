@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	defaultLogPath      = "./logs/cron.log"
+	defaultLogPath      = "./logs/mysqlPool"
 	defaultLogMaxSize   = 16 * 1024 * 1024
 	defaultLogMaxBackup = 5
 )
@@ -15,15 +15,10 @@ const (
 type Log = goLogger.Log
 type Logger = goLogger.Logger
 
-type Pool struct {
-	db     *sql.DB
-	Logger *Logger
-}
-
-type PoolList struct {
-	Read   *Pool
-	Write  *Pool
-	Logger *Logger
+type Config struct {
+	Read  *DBConfig `json:"read,omitempty"`
+	Write *DBConfig `json:"write,omitempty"`
+	Log   *Log      `json:"log,omitempty"`
 }
 
 type DBConfig struct {
@@ -35,10 +30,16 @@ type DBConfig struct {
 	Connection int    `json:"connection,omitempty"`
 }
 
-type Config struct {
-	Read  *DBConfig
-	Write *DBConfig
-	Log   *Log `json:"log,omitempty"`
+type PoolList struct {
+	Read  *Pool
+	Write *Pool
+	// * private
+	logger *Logger
+}
+
+type Pool struct {
+	db     *sql.DB
+	logger *Logger
 }
 
 type builder struct {
