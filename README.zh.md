@@ -1,28 +1,37 @@
-# MySQL 連線池 (Golang)
-> 一個適用於 Golang 支持鏈式呼叫的 MySQL 包裝器，具備讀寫分離、查詢建構器和自動日誌記錄功能，提供完整的連線管理。<br>
->> Node.js 版本可在[這裡](https://github.com/pardnchiu/node-mysql-pool)取得<br>
->> PHP 版本可在[這裡](https://github.com/pardnchiu/php-mysql-pool)取得
+# MySQL Pool
+> 一個支持鏈式呼叫的 Golang MySQL 包裝器，具備讀寫分離設置、查詢建構器等功能，提供完整的連線管理。<br>
+>
+> Node.js 版本 [前往](https://github.com/pardnchiu/node-mysql-pool) |  PHP 版本 [前往](https://github.com/pardnchiu/php-mysql-pool)
 
-[![license](https://img.shields.io/github/license/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/blob/main/LICENSE) 
-[![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/releases) 
-[![readme](https://img.shields.io/badge/readme-English-blue)](https://github.com/pardnchiu/go-mysql-pool/blob/main/README.md) 
+[![lang](https://img.shields.io/badge/lang-Go-blue)](README.zh.md) 
+[![license](https://img.shields.io/github/license/pardnchiu/go-mysql)](LICENSE)
+[![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql)](https://github.com/pardnchiu/go-mysql/releases)
+![card](https://goreportcard.com/badge/github.com/pardnchiu/go-mysql)<br>
+[![readme](https://img.shields.io/badge/readme-EN-white)](README.md)
+[![readme](https://img.shields.io/badge/readme-ZH-white)](README.zh.md) 
 
 ## 三大主軸
 
-- **讀寫分離**：支援讀寫連線池配置，提升資料庫效能
-- **查詢建構器**：鏈式語法的 SQL 查詢建構介面，防止 SQL 注入攻擊
-- **CRUD 操作**：完整的新增、查詢、更新、刪除操作支援
+### 讀寫分離配置
+支援讀寫連線池配置，增加資料庫預連接，提高連接效率
+
+### 查詢建構器
+支持鏈式語法的 SQL 查詢建構介面，防止 SQL 注入攻擊
+
+### CRUD 操作
+完整的新增、查詢、更新、刪除操作支援
 
 ## 依賴套件
 
 - [`github.com/go-sql-driver/mysql`](https://github.com/go-sql-driver/mysql)
-- [`github.com/pardnchiu/go-logger`](https://github.com/pardnchiu/go-logger)
+- [`github.com/pardnchiu/go-logger`](https://github.com/pardnchiu/go-logger)<br>
+  如果你不需要，你可以 fork 然後使用你熟悉的取代。更可以到[這裡](https://forms.gle/EvNLwzpHfxWR2gmP6)進行投票讓我知道。
 
 ## 使用方法
 
 ### 安裝
 ```bash
-go get github.com/pardnchiu/go-mysql-pool
+go get github.com/pardnchiu/go-mysql
 ```
 
 ### 初始化
@@ -33,13 +42,12 @@ import (
   "fmt"
   "log"
   
-  mysqlPool "github.com/pardnchiu/go-mysql-pool"
+  mp "github.com/pardnchiu/go-mysql"
 )
 
 func main() {
-  // 建立配置
-  config := mysqlPool.Config{
-    Read: &mysqlPool.DBConfig{
+  config := mp.Config{
+    Read: &mp.DBConfig{
       Host:       "localhost",
       Port:       3306,
       User:       "root",
@@ -47,7 +55,7 @@ func main() {
       Charset:    "utf8mb4",
       Connection: 10,
     },
-    Write: &mysqlPool.DBConfig{
+    Write: &mp.DBConfig{
       Host:       "localhost",
       Port:       3306,
       User:       "root",
@@ -57,14 +65,14 @@ func main() {
     },
   }
   
-  // 初始化連線池
-  pool, err := mysqlPool.New(config)
+  // Initialize
+  pool, err := mp.New(config)
   if err != nil {
     log.Fatal(err)
   }
   defer pool.Close()
   
-  // 插入資料
+  // Insert data
   userData := map[string]interface{}{
     "name":  "John Doe",
     "email": "john@example.com",
@@ -81,7 +89,7 @@ func main() {
   
   fmt.Printf("插入使用者 ID: %d\n", lastID)
   
-  // 查詢資料
+  // Query data
   rows, err := pool.Read.
     DB("myapp").
     Table("users").
@@ -102,12 +110,12 @@ func main() {
     if err != nil {
       log.Fatal(err)
     }
-    fmt.Printf("使用者: %s (%s)\n", name, email)
+    fmt.Printf("User: %s (%s)\n", name, email)
   }
 }
 ```
 
-### 配置說明
+## 配置介紹
 
 ```go
 type Config struct {
@@ -117,28 +125,28 @@ type Config struct {
 }
 
 type DBConfig struct {
-  Host       string // 資料庫主機位址
-  Port       int    // 資料庫連接埠
-  User       string // 資料庫使用者名稱
-  Password   string // 資料庫密碼
-  Charset    string // 字元集 (預設: utf8mb4)
-  Connection int    // 最大連線數
+  Host       string // Database host address
+  Port       int    // Database port
+  User       string // Database username
+  Password   string // Database password
+  Charset    string // Character set (default: utf8mb4)
+  Connection int    // Maximum connections
 }
 
 type Log struct {
-  Path      string // 日誌目錄路徑 (預設: ./logs/mysqlPool)
-  Stdout    bool   // 啟用控制台輸出 (預設: false)
-  MaxSize   int64  // 檔案輪轉前的最大大小 (預設: 16*1024*1024)
-  MaxBackup int    // 保留的日誌檔案數量 (預設: 5)
+  Path      string // Log directory path (default: ./logs/goMysql)
+  Stdout    bool   // Enable console output (default: false)
+  MaxSize   int64  // Maximum size before file rotation (default: 16*1024*1024)
+  MaxBackup int    // Number of log files to retain (default: 5)
+  Type      string // Output format: "json" for slog standard, "text" for tree format (default: "text")
 }
 ```
 
-## 支持的操作
+## 支持操作
 
-### 查詢建構
-
+### 查詢
 ```go
-// 基本查詢
+// Basic query
 rows, err := pool.Read.
   DB("database_name").
   Table("users").
@@ -146,7 +154,7 @@ rows, err := pool.Read.
   Where("status", "active").
   Get()
 
-// 複雜條件查詢
+// Complex conditional query
 rows, err := pool.Read.
   DB("database_name").
   Table("users").
@@ -159,7 +167,7 @@ rows, err := pool.Read.
   Offset(20).
   Get()
 
-// JOIN 查詢
+// JOIN query
 rows, err := pool.Read.
   DB("database_name").
   Table("users").
@@ -168,7 +176,7 @@ rows, err := pool.Read.
   Where("users.status", "active").
   Get()
 
-// 計算總數
+// Count total
 rows, err := pool.Read.
   DB("database_name").
   Table("users").
@@ -179,10 +187,9 @@ rows, err := pool.Read.
   Get()
 ```
 
-### CRUD 操作
-
+### CRUD
 ```go
-// 插入資料
+// Insert data
 data := map[string]interface{}{
   "name":  "Jane Doe",
   "email": "jane@example.com",
@@ -194,7 +201,7 @@ lastID, err := pool.Write.
   Table("users").
   Insert(data)
 
-// 更新資料
+// Update data
 updateData := map[string]interface{}{
   "age":    26,
   "status": "updated",
@@ -206,7 +213,7 @@ result, err := pool.Write.
   Where("id", 1).
   Update(updateData)
 
-// Upsert 操作
+// Upsert operation
 data := map[string]interface{}{
   "email": "unique@example.com",
   "name":  "New User",
@@ -222,7 +229,7 @@ lastID, err := pool.Write.
   Table("users").
   Upsert(data, updateData)
 
-// 遞增值
+// Increment values
 result, err := pool.Write.
   DB("database_name").
   Table("users").
@@ -231,26 +238,23 @@ result, err := pool.Write.
   Update()
 ```
 
-### SQL 操作
-
+### SQL
 ```go
-// 直接查詢
+// Direct query
 rows, err := pool.Read.Query("SELECT * FROM users WHERE age > ?", 18)
 
-// 直接執行
+// Direct execution
 result, err := pool.Write.Exec("UPDATE users SET last_login = NOW() WHERE id = ?", userID)
 ```
 
-## 核心功能
+## 可用函式
 
 ### 連線池管理
-
 - **New** - 建立新的連線池
   ```go
-  pool, err := mysqlPool.New(config)
+  pool, err := mp.New(config)
   ```
   - 初始化讀寫分離的連線池
-  - 設定日誌系統
   - 驗證資料庫連線可用性
 
 - **Close** - 關閉連線池
@@ -262,7 +266,6 @@ result, err := pool.Write.Exec("UPDATE users SET last_login = NOW() WHERE id = ?
   - 釋放系統資源
 
 ### 查詢建構
-
 - **DB** - 指定資料庫
   ```go
   builder := pool.Read.DB("database_name")
@@ -293,7 +296,6 @@ result, err := pool.Write.Exec("UPDATE users SET last_login = NOW() WHERE id = ?
   ```
 
 ### 資料操作
-
 - **Insert** - 插入資料
   ```go
   lastID, err := builder.Insert(data)
@@ -311,7 +313,7 @@ result, err := pool.Write.Exec("UPDATE users SET last_login = NOW() WHERE id = ?
 
 ## 授權條款
 
-此原始碼專案採用 [MIT](https://github.com/pardnchiu/go-mysql-pool/blob/main/LICENSE) 授權條款。
+此原始碼專案採用 [MIT](LICENSE) 授權條款。
 
 ## 作者
 

@@ -1,4 +1,4 @@
-package mysqlPool
+package goMysql
 
 import (
 	"database/sql"
@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-func (q *builder) Get() (*sql.Rows, error) {
-	if q.table == nil {
-		return nil, q.logger.Error(nil, "Table is required")
+func (b *builder) Get() (*sql.Rows, error) {
+	if b.table == nil {
+		return nil, b.logger.Error(nil, "Table is required")
 	}
 
-	fieldNames := make([]string, len(q.selectList))
-	for i, field := range q.selectList {
+	fieldNames := make([]string, len(b.selectList))
+	for i, field := range b.selectList {
 		switch {
 		case field == "*":
 			fieldNames[i] = "*"
@@ -23,31 +23,31 @@ func (q *builder) Get() (*sql.Rows, error) {
 		}
 	}
 
-	query := fmt.Sprintf("SELECT %s FROM `%s`", strings.Join(fieldNames, ", "), *q.table)
+	query := fmt.Sprintf("SELECT %s FROM `%s`", strings.Join(fieldNames, ", "), *b.table)
 
-	if len(q.joinList) > 0 {
-		query += " " + strings.Join(q.joinList, " ")
+	if len(b.joinList) > 0 {
+		query += " " + strings.Join(b.joinList, " ")
 	}
 
-	if len(q.whereList) > 0 {
-		query += " WHERE " + strings.Join(q.whereList, " AND ")
+	if len(b.whereList) > 0 {
+		query += " WHERE " + strings.Join(b.whereList, " AND ")
 	}
 
-	if q.withTotal {
+	if b.withTotal {
 		query = fmt.Sprintf("SELECT COUNT(*) OVER() AS total, data.* FROM (%s) AS data", query)
 	}
 
-	if len(q.orderList) > 0 {
-		query += " ORDER BY " + strings.Join(q.orderList, ", ")
+	if len(b.orderList) > 0 {
+		query += " ORDER BY " + strings.Join(b.orderList, ", ")
 	}
 
-	if q.limit != nil {
-		query += fmt.Sprintf(" LIMIT %d", *q.limit)
+	if b.limit != nil {
+		query += fmt.Sprintf(" LIMIT %d", *b.limit)
 	}
 
-	if q.offset != nil {
-		query += fmt.Sprintf(" OFFSET %d", *q.offset)
+	if b.offset != nil {
+		query += fmt.Sprintf(" OFFSET %d", *b.offset)
 	}
 
-	return q.query(query, q.bindingList...)
+	return b.query(query, b.bindingList...)
 }

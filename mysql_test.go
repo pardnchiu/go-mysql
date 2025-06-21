@@ -1,19 +1,17 @@
-package main
+package goMysql
 
 import (
 	"fmt"
 	"log"
 	"testing"
-
-	mysqlPool "github.com/pardnchiu/golang-mysql-pool"
 )
 
-var pool *mysqlPool.PoolList
+var pool *PoolList
 
 func init() {
 	// 初始化連接池配置
-	config := mysqlPool.Config{
-		Read: &mysqlPool.DBConfig{
+	config := Config{
+		Read: &DBConfig{
 			Host:       "localhost",
 			Port:       3306,
 			User:       "root",
@@ -21,7 +19,7 @@ func init() {
 			Charset:    "utf8mb4",
 			Connection: 10,
 		},
-		Write: &mysqlPool.DBConfig{
+		Write: &DBConfig{
 			Host:       "localhost",
 			Port:       3306,
 			User:       "root",
@@ -29,13 +27,13 @@ func init() {
 			Charset:    "utf8mb4",
 			Connection: 5,
 		},
-		Log: &mysqlPool.Log{
+		Log: &Log{
 			Path: "./logs/mysql-pool-test",
 		},
 	}
 
 	var err error
-	pool, err = mysqlPool.New(config)
+	pool, err = New(config)
 	if err != nil {
 		log.Fatal("Failed to initialize pool:", err)
 	}
@@ -518,8 +516,8 @@ func TestPoolClose(t *testing.T) {
 // 效能測試
 func BenchmarkInsert(b *testing.B) {
 	// 重新初始化連接池
-	config := mysqlPool.Config{
-		Read: &mysqlPool.DBConfig{
+	config := Config{
+		Read: &DBConfig{
 			Host:       "localhost",
 			Port:       3306,
 			User:       "root",
@@ -527,7 +525,7 @@ func BenchmarkInsert(b *testing.B) {
 			Charset:    "utf8mb4",
 			Connection: 10,
 		},
-		Write: &mysqlPool.DBConfig{
+		Write: &DBConfig{
 			Host:       "localhost",
 			Port:       3306,
 			User:       "root",
@@ -535,12 +533,12 @@ func BenchmarkInsert(b *testing.B) {
 			Charset:    "utf8mb4",
 			Connection: 5,
 		},
-		Log: &mysqlPool.Log{
+		Log: &Log{
 			Path: "./logs/mysql-pool-test",
 		},
 	}
 
-	benchPool, err := mysqlPool.New(config)
+	benchPool, err := New(config)
 	if err != nil {
 		b.Fatal("Failed to initialize benchmark pool:", err)
 	}

@@ -1,4 +1,4 @@
-package mysqlPool
+package goMysql
 
 import (
 	"database/sql"
@@ -13,34 +13,17 @@ import (
 )
 
 func New(c Config) (*PoolList, error) {
-	// 初始化日誌器設定
-	if c.Log == nil {
-		c.Log = &Log{
-			Path:    defaultLogPath,
-			Stdout:  false,
-			MaxSize: defaultLogMaxSize,
-		}
-	}
-	if c.Log.Path == "" {
-		c.Log.Path = defaultLogPath
-	}
-	if c.Log.MaxSize <= 0 {
-		c.Log.MaxSize = defaultLogMaxSize
-	}
-	if c.Log.MaxBackup <= 0 {
-		c.Log.MaxBackup = defaultLogMaxBackup
-	}
+	c.Log = validLoggerConfig(c)
 
-	// 建立日誌器實例
 	logger, err := goLogger.New(c.Log)
 	if err != nil {
-		return nil, fmt.Errorf("Can not initialize logger: %v", err)
+		return nil, fmt.Errorf("Failed to initialize `pardnchiu/go-logger`: %w", err)
 	}
 
 	var pool = &PoolList{
 		Read:   nil,
 		Write:  nil,
-		Logger: logger,
+		logger: logger,
 	}
 
 	readConfig := c.Read
@@ -124,8 +107,8 @@ func New(c Config) (*PoolList, error) {
 	pool.Write = &Pool{db: writeDB}
 
 	pool.listenShutdownSignal()
-	pool.Write.Logger = logger
-	pool.Read.Logger = logger
+	pool.Write.logger = logger
+	pool.Read.logger = logger
 	return pool, nil
 }
 
@@ -143,16 +126,15 @@ func (p *PoolList) Close() error {
 	}
 
 	if readErr != nil {
-		return p.Write.Logger.Error(readErr, "Failed to close read pool")
+		return p.Write.logger.Error(readErr, "Failed to close read pool")
 	}
 	if writeErr != nil {
-		return p.Write.Logger.Error(writeErr, "Failed to close write pool")
+		return p.Write.logger.Error(writeErr, "Failed to close write pool")
 	}
 
 	return nil
 }
 
-// * private method
 func (p *PoolList) listenShutdownSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -162,4 +144,24 @@ func (p *PoolList) listenShutdownSignal() {
 		_ = p.Close()
 		os.Exit(0)
 	}()
+}
+
+func validLoggerConfig(c Config) *Log {
+	if c.Log == nil {
+		c.Log = &Log{
+			Path:    defaultLogPath,
+			Stdout:  false,
+			MaxSize: defaultLogMaxSize,
+		}
+	}
+	if c.Log.Path == "" {
+		c.Log.Path = defaultLogPath
+	}
+	if c.Log.MaxSize <= 0 {
+		c.Log.MaxSize = defaultLogMaxSize
+	}
+	if c.Log.MaxBackup <= 0 {
+		c.Log.MaxBackup = defaultLogMaxBackup
+	}
+	return c.Log
 }

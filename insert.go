@@ -1,13 +1,13 @@
-package mysqlPool
+package goMysql
 
 import (
 	"fmt"
 	"strings"
 )
 
-func (q *builder) Insert(data map[string]interface{}) (int64, error) {
-	if q.table == nil {
-		return 0, q.logger.Error(nil, "Table is required")
+func (b *builder) Insert(data map[string]interface{}) (int64, error) {
+	if b.table == nil {
+		return 0, b.logger.Error(nil, "Table is required")
 	}
 
 	columns := make([]string, 0, len(data))
@@ -21,12 +21,12 @@ func (q *builder) Insert(data map[string]interface{}) (int64, error) {
 	}
 
 	query := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)",
-		*q.table,
+		*b.table,
 		strings.Join(columns, ", "),
 		strings.Join(placeholders, ", "),
 	)
 
-	result, err := q.exec(query, values...)
+	result, err := b.exec(query, values...)
 	if err != nil {
 		return 0, err
 	}
