@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/github/license/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/blob/main/LICENSE) 
 [![version](https://img.shields.io/github/v/tag/pardnchiu/go-mysql-pool)](https://github.com/pardnchiu/go-mysql-pool/releases) 
 
-## Key Features
+## Features
 
 - **Read-Write Separation**: Support for independent read and write connection pool configurations to enhance database performance
 - **Query Builder**: Fluent SQL query building interface to prevent SQL injection
@@ -316,40 +316,6 @@ result, err := pool.Write.Exec("UPDATE users SET last_login = NOW() WHERE id = ?
   ```go
   lastID, err := builder.Upsert(insertData, updateData)
   ```
-
-## Error Handling Strategy
-
-### Connection Management Errors
-- Automatically re-establish connections when they fail
-- Proper waiting and timeout handling when connection pool is exhausted
-- Graceful degradation when database is unavailable
-
-### SQL Execution Errors
-- Detailed error reporting for SQL syntax errors
-- Clear messages for constraint violation errors
-- Automatic cancellation of timeout queries
-
-### Concurrency Safety
-- Thread-safe connection pool operations
-- Concurrency-safe query builder design
-- Proper locking mechanisms to prevent race conditions
-
-## Performance Features
-
-### Connection Pool Optimization
-- Pre-established connections reduce creation overhead
-- Connection reuse improves overall performance
-- Automatic connection health checks
-
-### Query Optimization
-- Prepared statement reuse mechanism
-- Automatic slow query logging and analysis
-- Query execution time monitoring
-
-### Memory Management
-- Efficient query builder memory usage
-- Automatic release of unused connections
-- Streaming result set processing support
 
 ## License
 
