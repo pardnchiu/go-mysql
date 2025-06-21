@@ -15,14 +15,20 @@
 - **CRUD Operations**: Complete Create, Read, Update, Delete operation support
 - **Memory Efficient**: Connection pool-based resource management for optimal performance
 
-## Quick Start
+## Dependencies
+
+- [`github.com/go-sql-driver/mysql`](https://github.com/go-sql-driver/mysql)
+- [`github.com/pardnchiu/go-logger`](https://github.com/pardnchiu/go-logger)
+
+
+## How to use
 
 ### Installation
 ```bash
 go get github.com/pardnchiu/golang-mysql-pool
 ```
 
-### Basic Usage
+### Initialization
 ```go
 package main
 
@@ -30,7 +36,6 @@ import (
   "fmt"
   "log"
   
-  _ "github.com/go-sql-driver/mysql"
   mysqlPool "github.com/pardnchiu/golang-mysql-pool"
 )
 
@@ -343,71 +348,6 @@ result, err := pool.Write.Exec("UPDATE users SET last_login = NOW() WHERE id = ?
 - Efficient query builder memory usage
 - Automatic release of unused connections
 - Streaming result set processing support
-
-## Architecture Overview
-
-```mermaid
-graph TB
-  subgraph "Application Layer"
-    APP[Application]
-    QC[Query Builder]
-  end
-  
-  subgraph "Connection Pool Layer"
-    RP[Read Pool]
-    WP[Write Pool]
-    LM[Log Manager]
-  end
-  
-  subgraph "Database Layer"
-    MR[MySQL Read Instance]
-    MW[MySQL Write Instance]
-  end
-  
-  APP --> QC
-  QC --> RP
-  QC --> WP
-  QC --> LM
-  
-  RP --> MR
-  WP --> MW
-  
-  RP -.-> LM
-  WP -.-> LM
-```
-
-## Flow Chart
-
-```mermaid
-flowchart TD
-  A[Initialize Config] --> B[Create Read Pool]
-  B --> C[Create Write Pool]
-  C --> D[Setup Logging]
-  D --> E[Validate Connections]
-  
-  E --> F{Operation Type}
-  F -->|Query| G[Use Read Pool]
-  F -->|Write| H[Use Write Pool]
-  
-  G --> I[Get Connection]
-  H --> I
-  
-  I --> J{Connection Available?}
-  J -->|No| K[Wait for Connection]
-  J -->|Yes| L[Execute SQL]
-  
-  K --> I
-  
-  L --> M[Log Slow Query]
-  M --> N[Release Connection]
-  N --> O[Return Result]
-  
-  O --> P{Close Pool?}
-  P -->|No| F
-  P -->|Yes| Q[Close All Connections]
-  Q --> R[Clean Resources]
-  R --> S[Pool Closed]
-```
 
 ## License
 
